@@ -4,22 +4,40 @@ import fetch from "node-fetch"
 import mysql from "mysql"
 let app = express()
 
+function set_options(res, options) {
+  res.header("Access-Control-Allow-Origin", '*')
+
+  if(options && options.length)
+    for (let option of options) {
+      if (option.length == 2 && option[0] && option[1])
+        res.header(option[0], option[1])
+    }
+
+  return res
+}
+
 app.get('/', function (req, res) {
-  res.header("Access-Control-Allow-Origin", "*")
-  res.end('You must choose an endpoint!')
+  res = set_options(res)
+
+  let endpoints = ["static_data", "api_data", "db_data"]
+  let DOM_data = "<h1>You must choose an endpoint!</h1>"
+  for (let endpoint of endpoints)
+    DOM_data += '<a href="' + endpoint + '" target="_blank">/' + endpoint + "</a><br /><br />"
+  res.end(DOM_data)
 })
 
 app.get('/static_data', function (req, res) {
-  res.header("Access-Control-Allow-Origin", "*")
+  res = set_options(res)
+
   /*let options = {
       root: path.join(__dirname)
   }*/
   //res.sendFile("data.json", options)
-  res.sendFile("/home/runner/APIExpressnode/data.json")
+  res.sendFile("/home/runner/APIExpressNode/data.json")
 })
 
 app.get('/api_data', function (req, res) {
-  res.header("Access-Control-Allow-Origin", "*")
+  res = set_options(res)
 
   let header = {
     'Accept': 'application/json',
@@ -34,17 +52,15 @@ app.get('/api_data', function (req, res) {
     for(let book of JSON.parse(data).docs){
       api_data[book.name] = book._id
     }
-    //res.end(data)
     res.end(JSON.stringify(api_data))
   })
 })
 
 app.get('/db_data', function (req, res) {
-  res.header("Access-Control-Allow-Origin", "*")
+  res = set_options(res)
 
-  
   let sql = "SELECT * from places;"
-  
+
   let con = mysql.createConnection({
     host: "remotemysql.com",
     user: "uOdiYKGflG",
@@ -66,6 +82,5 @@ app.get('/db_data', function (req, res) {
       res.end(db_data)
     })
   })
-
 })
 app.listen(8000)
